@@ -38,32 +38,78 @@ class TicketLinkBot:
             raise ValueError("로그인 정보가 필요합니다.")
     
     def setup_driver(self):
-        """웹드라이버 설정 - 매크로 감지 우회"""
+        """웹드라이버 설정 - undetected_chromedriver 사용으로 매크로 감지 우회"""
         try:
+            # undetected_chromedriver 옵션 설정
             options = uc.ChromeOptions()
+            
             # 헤드리스 모드 비활성화 (디버깅용)
-            # chrome_options.add_argument("--headless")
+            # options.add_argument("--headless")
+            
+            # 기본 설정
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
-            options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_argument("--disable-web-security")
             options.add_argument("--allow-running-insecure-content")
             options.add_argument("--disable-features=VizDisplayCompositor")
+            
+            # User-Agent 설정
             options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
             
-            # 매크로 감지 우회를 위한 설정
+            # 창 크기 설정
+            options.add_argument("--window-size=1920,1080")
+            
+            # 추가 설정
+            options.add_argument("--disable-blink-features=AutomationControlled")
+            options.add_argument("--disable-extensions")
+            options.add_argument("--disable-plugins")
+            options.add_argument("--disable-images")
+            options.add_argument("--disable-javascript")
+            options.add_argument("--disable-default-apps")
+            options.add_argument("--disable-sync")
+            options.add_argument("--disable-translate")
+            options.add_argument("--disable-background-timer-throttling")
+            options.add_argument("--disable-backgrounding-occluded-windows")
+            options.add_argument("--disable-renderer-backgrounding")
+            options.add_argument("--disable-field-trial-config")
+            options.add_argument("--disable-ipc-flooding-protection")
+            
+            # 실험적 옵션
             options.add_experimental_option("excludeSwitches", ["enable-automation"])
             options.add_experimental_option('useAutomationExtension', False)
             options.add_experimental_option("prefs", {
                 "profile.default_content_setting_values.notifications": 2,
                 "profile.default_content_settings.popups": 0,
-                "profile.managed_default_content_settings.images": 2
+                "profile.managed_default_content_settings.images": 2,
+                "profile.default_content_setting_values.media_stream": 2,
+                "profile.default_content_setting_values.geolocation": 2,
+                "profile.default_content_setting_values.mixed_script": 1,
+                "profile.default_content_setting_values.media_stream_mic": 2,
+                "profile.default_content_setting_values.media_stream_camera": 2,
+                "profile.default_content_setting_values.protocol_handlers": 2,
+                "profile.default_content_setting_values.ppapi_broker": 2,
+                "profile.default_content_setting_values.automatic_downloads": 1,
+                "profile.default_content_setting_values.midi_sysex": 2,
+                "profile.default_content_setting_values.push_messaging": 2,
+                "profile.default_content_setting_values.ssl_cert_decisions": 2,
+                "profile.default_content_setting_values.metro_switch_to_desktop": 2,
+                "profile.default_content_setting_values.protected_media_identifier": 2,
+                "profile.default_content_setting_values.app_banner": 2,
+                "profile.default_content_setting_values.site_engagement": 2,
+                "profile.default_content_setting_values.durable_storage": 2
             })
             
-            self.driver = uc.Chrome(options=options)
+            # undetected_chromedriver로 드라이버 생성
+            self.driver = uc.Chrome(options=options, version_main=None)
             self.wait = WebDriverWait(self.driver, 15)
             
-            self.logger.info("웹드라이버 설정 완료 (undetected-chromedriver 사용)")
+            # 추가적인 매크로 감지 우회 스크립트
+            self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            self.driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]})")
+            self.driver.execute_script("Object.defineProperty(navigator, 'languages', {get: () => ['ko-KR', 'ko', 'en-US', 'en']})")
+            self.driver.execute_script("Object.defineProperty(navigator, 'permissions', {get: () => ({query: () => Promise.resolve({state: 'granted'})})})")
+            
+            self.logger.info("웹드라이버 설정 완료 (undetected_chromedriver 사용)")
             
         except Exception as e:
             self.logger.error(f"웹드라이버 설정 실패: {e}")
@@ -75,54 +121,355 @@ class TicketLinkBot:
         time.sleep(delay)
     
     def human_like_typing(self, element, text):
-        """사람처럼 타이핑"""
-        for char in text:
+        """사람처럼 타이핑 - 더 자연스러운 속도와 패턴"""
+        # 기존 텍스트 클리어
+        element.clear()
+        self.random_delay(0.2, 0.5)
+        
+        # 사람처럼 타이핑
+        for i, char in enumerate(text):
             element.send_keys(char)
-            time.sleep(random.uniform(0.05, 0.15))
+            # 타이핑 속도 변화 (시작은 느리고, 중간은 빠르고, 끝은 다시 느리게)
+            if i < len(text) * 0.3:  # 처음 30%
+                time.sleep(random.uniform(0.08, 0.15))
+            elif i > len(text) * 0.7:  # 마지막 30%
+                time.sleep(random.uniform(0.08, 0.15))
+            else:  # 중간 40%
+                time.sleep(random.uniform(0.03, 0.08))
+            
+            # 가끔 실수하고 백스페이스 (5% 확률)
+            if random.random() < 0.05:
+                element.send_keys(Keys.BACKSPACE)
+                time.sleep(random.uniform(0.1, 0.2))
+                element.send_keys(char)
+                time.sleep(random.uniform(0.05, 0.1))
     
     def human_like_click(self, element):
-        """사람처럼 클릭"""
+        """사람처럼 클릭 - 마우스 움직임과 클릭 패턴"""
         actions = ActionChains(self.driver)
+        
+        # 현재 마우스 위치에서 요소로 자연스럽게 이동
         actions.move_to_element(element)
-        actions.pause(random.uniform(0.1, 0.3))
+        actions.pause(random.uniform(0.2, 0.5))
+        
+        # 가끔 마우스를 약간 움직였다가 다시 클릭 (더 자연스럽게)
+        if random.random() < 0.3:
+            actions.move_by_offset(random.randint(-5, 5), random.randint(-5, 5))
+            actions.pause(random.uniform(0.1, 0.3))
+            actions.move_to_element(element)
+            actions.pause(random.uniform(0.1, 0.2))
+        
+        # 클릭
         actions.click()
         actions.perform()
+        
+        # 클릭 후 잠시 대기
+        self.random_delay(0.5, 1.5)
     
     def login(self):
-        """로그인 수행"""
+        """PAYCO 로그인 수행"""
         try:
-            self.logger.info("로그인 시도 중...")
+            self.logger.info("PAYCO 로그인 시도 중...")
             
-            # 로그인 페이지로 이동
-            login_url = f"{self.base_url}/user/login"
-            self.driver.get(login_url)
-            self.random_delay(2, 4)
+            # 메인 페이지로 이동
+            main_url = self.base_url
+            self.logger.info(f"메인 페이지로 이동: {main_url}")
+            self.driver.get(main_url)
+            self.random_delay(3, 6)  # 더 긴 대기 시간
             
-            # 로그인 폼 요소 찾기
-            username_field = self.wait.until(
-                EC.presence_of_element_located((By.NAME, "userId"))
-            )
-            password_field = self.driver.find_element(By.NAME, "userPw")
+            # Alert 처리
+            try:
+                alert = self.driver.switch_to.alert
+                alert_text = alert.text
+                self.logger.warning(f"Alert 감지: {alert_text}")
+                alert.accept()
+                self.random_delay(1, 2)
+            except:
+                pass  # Alert가 없으면 무시
             
-            # 사람처럼 로그인 정보 입력
-            self.human_like_typing(username_field, self.username)
-            self.random_delay(0.5, 1.5)
-            self.human_like_typing(password_field, self.password)
+            # 현재 URL 확인
+            current_url = self.driver.current_url
+            self.logger.info(f"현재 페이지 URL: {current_url}")
+            
+            # 페이지가 완전히 로드될 때까지 대기
+            self.wait.until(lambda driver: driver.execute_script("return document.readyState") == "complete")
+            
+            # 로그인 버튼 찾기 (여러 가능한 선택자 시도)
+            login_selectors = [
+                ".btn_login", 
+                ".login_btn", 
+                "a[href*='login']", 
+                "button[onclick*='login']",
+                ".user_login",
+                "#loginBtn",
+                ".header_login",
+                ".gnb_login",
+                "a[title*='로그인']",
+                "button[title*='로그인']"
+            ]
+            
+            login_button = None
+            for selector in login_selectors:
+                try:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    if elements:
+                        login_button = elements[0]
+                        self.logger.info(f"로그인 버튼 찾음: {selector}")
+                        break
+                except:
+                    continue
+            
+            if not login_button:
+                # 로그인 링크 직접 클릭 시도 (텍스트 기반)
+                try:
+                    login_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), '로그인')]")
+                    for element in login_elements:
+                        if element.is_displayed() and element.is_enabled():
+                            login_button = element
+                            self.logger.info("로그인 텍스트 요소 찾음")
+                            break
+                except:
+                    pass
+            
+            if not login_button:
+                # 더 넓은 범위로 검색
+                try:
+                    login_button = self.driver.find_element(By.XPATH, "//a[contains(@href, 'login') or contains(@onclick, 'login')]")
+                    self.logger.info("로그인 링크 찾음")
+                except:
+                    self.logger.error("로그인 버튼을 찾을 수 없습니다.")
+                    # 현재 페이지의 모든 링크 출력 (디버깅용)
+                    try:
+                        all_links = self.driver.find_elements(By.TAG_NAME, "a")
+                        self.logger.info(f"페이지의 모든 링크 수: {len(all_links)}")
+                        for i, link in enumerate(all_links[:10]):  # 처음 10개만
+                            try:
+                                self.logger.info(f"링크 {i+1}: {link.text} - {link.get_attribute('href')}")
+                            except:
+                                pass
+                    except:
+                        pass
+                    raise Exception("로그인 버튼을 찾을 수 없습니다.")
+            
+            # 로그인 버튼이 화면에 보이도록 스크롤
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", login_button)
             self.random_delay(1, 2)
             
             # 로그인 버튼 클릭
-            login_button = self.driver.find_element(By.CLASS_NAME, "btn_login")
+            self.logger.info("로그인 버튼 클릭 중...")
             self.human_like_click(login_button)
+            self.random_delay(4, 7)  # 더 긴 대기 시간
             
-            # 로그인 성공 확인
-            self.wait.until(
-                EC.presence_of_element_located((By.CLASS_NAME, "user_info"))
-            )
+            # Alert 처리
+            try:
+                alert = self.driver.switch_to.alert
+                alert_text = alert.text
+                self.logger.warning(f"로그인 버튼 클릭 후 Alert: {alert_text}")
+                alert.accept()
+                self.random_delay(1, 2)
+            except:
+                pass
+            
+            # 팝업 창 처리
+            self.logger.info("팝업 창 확인 중...")
+            main_window = self.driver.current_window_handle
+            
+            # 팝업 창이 열릴 때까지 대기
+            self.random_delay(3, 6)
+            
+            # 모든 창 핸들 가져오기
+            all_windows = self.driver.window_handles
+            
+            if len(all_windows) > 1:
+                # 팝업 창으로 전환
+                popup_window = None
+                for window in all_windows:
+                    if window != main_window:
+                        popup_window = window
+                        break
+                
+                if popup_window:
+                    self.driver.switch_to.window(popup_window)
+                    self.logger.info("팝업 창으로 전환됨")
+                    
+                    # PAYCO 로그인 페이지에서 로그인 정보 입력
+                    self.handle_payco_login()
+                    
+                    # OAuth 콜백 처리 대기
+                    self.logger.info("OAuth 콜백 처리 대기 중...")
+                    self.random_delay(6, 10)
+                    
+                    # 팝업 창이 자동으로 닫혔는지 확인
+                    current_windows = self.driver.window_handles
+                    if popup_window in current_windows:
+                        # 팝업 창이 아직 열려있으면 수동으로 닫기
+                        self.driver.close()
+                        self.driver.switch_to.window(main_window)
+                        self.logger.info("팝업 창 수동 닫기 및 메인 창으로 복귀")
+                    else:
+                        # 팝업 창이 자동으로 닫힘
+                        self.driver.switch_to.window(main_window)
+                        self.logger.info("팝업 창 자동 닫힘, 메인 창으로 복귀")
+                else:
+                    self.logger.error("팝업 창을 찾을 수 없습니다.")
+                    raise Exception("팝업 창을 찾을 수 없습니다.")
+            else:
+                # 팝업이 아닌 경우 현재 페이지에서 로그인 시도
+                self.logger.info("팝업 창이 없음, 현재 페이지에서 로그인 시도")
+                self.handle_payco_login()
+            
+            # 로그인 성공 확인 (여러 방법 시도)
+            self.logger.info("로그인 성공 확인 중...")
+            success_indicators = [
+                (By.CLASS_NAME, "user_info"),
+                (By.CLASS_NAME, "user_profile"),
+                (By.CLASS_NAME, "logout"),
+                (By.XPATH, "//a[contains(text(), '로그아웃')]"),
+                (By.XPATH, "//span[contains(text(), '님')]"),
+                (By.XPATH, "//a[contains(text(), '마이페이지')]"),
+                (By.XPATH, "//a[contains(text(), '예매내역')]")
+            ]
+            
+            login_success = False
+            for indicator in success_indicators:
+                try:
+                    self.wait.until(EC.presence_of_element_located(indicator))
+                    self.logger.info(f"로그인 성공 확인됨: {indicator[1]}")
+                    login_success = True
+                    break
+                except:
+                    continue
+            
+            if not login_success:
+                # URL 기반 확인
+                current_url = self.driver.current_url
+                if "callback" in current_url or "auth" in current_url:
+                    self.logger.info("OAuth 콜백 URL에서 로그인 성공 확인")
+                    login_success = True
+                
+            if not login_success:
+                raise Exception("로그인 성공을 확인할 수 없습니다.")
             
             self.logger.info("로그인 성공")
             
         except Exception as e:
             self.logger.error(f"로그인 실패: {e}")
+            # 현재 페이지 정보 출력
+            try:
+                current_url = self.driver.current_url
+                page_title = self.driver.title
+                self.logger.error(f"현재 페이지 URL: {current_url}")
+                self.logger.error(f"페이지 제목: {page_title}")
+            except:
+                pass
+            raise
+    
+    def handle_payco_login(self):
+        """PAYCO 로그인 페이지에서 로그인 처리"""
+        try:
+            self.logger.info("PAYCO 로그인 페이지 처리 중...")
+            
+            # 현재 URL 확인
+            current_url = self.driver.current_url
+            self.logger.info(f"PAYCO 페이지 URL: {current_url}")
+            
+            # PAYCO 로그인 폼 요소 찾기 (여러 가능한 선택자)
+            username_selectors = [
+                "input[name='userId']",
+                "input[name='id']", 
+                "input[name='email']",
+                "input[type='email']",
+                "#userId",
+                "#id",
+                "#email"
+            ]
+            
+            password_selectors = [
+                "input[name='userPw']",
+                "input[name='password']",
+                "input[name='pw']",
+                "input[type='password']",
+                "#userPw",
+                "#password",
+                "#pw"
+            ]
+            
+            # 사용자명 필드 찾기
+            username_field = None
+            for selector in username_selectors:
+                try:
+                    username_field = self.wait.until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, selector))
+                    )
+                    self.logger.info(f"사용자명 필드 찾음: {selector}")
+                    break
+                except:
+                    continue
+            
+            if not username_field:
+                self.logger.error("사용자명 입력 필드를 찾을 수 없습니다.")
+                raise Exception("사용자명 입력 필드를 찾을 수 없습니다.")
+            
+            # 비밀번호 필드 찾기
+            password_field = None
+            for selector in password_selectors:
+                try:
+                    password_field = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    self.logger.info(f"비밀번호 필드 찾음: {selector}")
+                    break
+                except:
+                    continue
+            
+            if not password_field:
+                self.logger.error("비밀번호 입력 필드를 찾을 수 없습니다.")
+                raise Exception("비밀번호 입력 필드를 찾을 수 없습니다.")
+            
+            # 로그인 정보 입력
+            self.logger.info("로그인 정보 입력 중...")
+            self.human_like_typing(username_field, self.username)
+            self.random_delay(0.5, 1.5)
+            self.human_like_typing(password_field, self.password)
+            self.random_delay(1, 2)
+            
+            # 로그인 버튼 찾기 및 클릭
+            login_button_selectors = [
+                ".btn_login",
+                ".login_btn", 
+                "button[type='submit']",
+                "input[type='submit']",
+                ".btn_submit",
+                "#loginBtn"
+            ]
+            
+            login_button = None
+            for selector in login_button_selectors:
+                try:
+                    login_button = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    self.logger.info(f"로그인 버튼 찾음: {selector}")
+                    break
+                except:
+                    continue
+            
+            if not login_button:
+                # 텍스트로 로그인 버튼 찾기
+                try:
+                    login_button = self.driver.find_element(By.XPATH, "//button[contains(text(), '로그인')]")
+                    self.logger.info("로그인 텍스트 버튼 찾음")
+                except:
+                    self.logger.error("로그인 버튼을 찾을 수 없습니다.")
+                    raise Exception("로그인 버튼을 찾을 수 없습니다.")
+            
+            # 로그인 버튼 클릭
+            self.logger.info("PAYCO 로그인 버튼 클릭 중...")
+            self.human_like_click(login_button)
+            
+            # 로그인 완료 대기
+            self.random_delay(3, 5)
+            
+            self.logger.info("PAYCO 로그인 처리 완료")
+            
+        except Exception as e:
+            self.logger.error(f"PAYCO 로그인 처리 실패: {e}")
             raise
     
     def go_to_product_page(self, product_url):
@@ -301,6 +648,25 @@ class TicketLinkBot:
         except Exception as e:
             self.logger.error(f"결제 완료 실패: {e}")
             raise
+    
+    def test_login_only(self):
+        """로그인만 테스트"""
+        try:
+            self.setup_driver()
+            self.login()
+            
+            # 로그인 성공 확인을 위해 잠시 대기
+            self.random_delay(5, 10)
+            
+            self.logger.info("로그인 테스트 완료")
+            
+        except Exception as e:
+            self.logger.error(f"로그인 테스트 중 오류 발생: {e}")
+            raise
+        finally:
+            if self.driver:
+                self.driver.quit()
+                self.logger.info("웹드라이버 종료")
     
     def run_test_booking(self, product_url):
         """테스트 예매 실행"""
