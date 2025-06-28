@@ -32,6 +32,7 @@ class TicketLinkBot:
         # 환경 변수에서 로그인 정보 가져오기
         self.username = os.getenv('TICKETLINK_ID')
         self.password = os.getenv('TICKETLINK_PASSWORD')
+        self.birthday = os.getenv('TICKETLINK_BIRTHDAY', '19820124')  # 기본값 설정
         
         if not self.username or not self.password:
             self.logger.error("로그인 정보가 설정되지 않았습니다. .env 파일을 확인해주세요.")
@@ -40,53 +41,14 @@ class TicketLinkBot:
     def setup_driver(self):
         """웹드라이버 설정 - undetected_chromedriver 사용으로 매크로 감지 우회"""
         try:
-            # undetected_chromedriver 옵션 설정
-            options = uc.ChromeOptions()
-            
-            # 헤드리스 모드 비활성화 (디버깅용)
-            # options.add_argument("--headless")
-            
-            # 기본 설정
-            options.add_argument("--no-sandbox")
-            options.add_argument("--disable-dev-shm-usage")
-            options.add_argument("--disable-web-security")
-            options.add_argument("--allow-running-insecure-content")
-            
-            # User-Agent 설정 (더 일반적인 것으로 변경)
-            options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
-            
             # 창 크기 설정
+            options = uc.ChromeOptions()
             options.add_argument("--window-size=1366,768")
             
             # 매크로 감지 우회를 위한 핵심 설정
             options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_argument("--disable-extensions")
             options.add_argument("--disable-plugins")
-            
-            # 추가 우회 설정
-            options.add_argument("--disable-background-timer-throttling")
-            options.add_argument("--disable-backgrounding-occluded-windows")
-            options.add_argument("--disable-renderer-backgrounding")
-            options.add_argument("--disable-features=TranslateUI")
-            options.add_argument("--disable-ipc-flooding-protection")
-            options.add_argument("--disable-hang-monitor")
-            options.add_argument("--disable-prompt-on-repost")
-            options.add_argument("--disable-domain-reliability")
-            options.add_argument("--disable-component-extensions-with-background-pages")
-            options.add_argument("--disable-default-apps")
-            options.add_argument("--disable-sync")
-            options.add_argument("--disable-translate")
-            options.add_argument("--no-first-run")
-            options.add_argument("--no-default-browser-check")
-            options.add_argument("--disable-background-networking")
-            options.add_argument("--disable-client-side-phishing-detection")
-            options.add_argument("--disable-component-update")
-            options.add_argument("--disable-sync-preferences")
-            options.add_argument("--metrics-recording-only")
-            options.add_argument("--no-report-upload")
-            options.add_argument("--disable-logging")
-            options.add_argument("--silent")
-            options.add_argument("--log-level=3")
             
             # undetected_chromedriver로 드라이버 생성
             self.driver = uc.Chrome(options=options, version_main=None)
@@ -114,19 +76,6 @@ class TicketLinkBot:
                 get: () => ({
                     query: () => Promise.resolve({state: 'granted'})
                 }),
-            });
-            
-            // chrome 속성 설정
-            Object.defineProperty(window, 'chrome', {
-                writable: true,
-                enumerable: true,
-                configurable: true,
-                value: {
-                    runtime: {},
-                    loadTimes: function() {},
-                    csi: function() {},
-                    app: {}
-                }
             });
             
             // 자동화 관련 속성 제거
@@ -585,6 +534,7 @@ class TicketLinkBot:
             
             # 로그인 버튼 찾기 및 클릭
             login_button_selectors = [
+                "#loginButton",  # PAYCO 로그인 버튼
                 ".btn_login",
                 ".login_btn", 
                 "button[type='submit']",
