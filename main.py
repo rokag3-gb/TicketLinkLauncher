@@ -24,12 +24,14 @@ def main():
     # 환경 변수 검증
     username = os.getenv('TICKETLINK_ID')
     password = os.getenv('TICKETLINK_PASSWORD')
+    birthday = os.getenv('TICKETLINK_BIRTHDAY', '19820124')
     
     if not username or not password or username == 'your_ticketlink_id':
         print("❌ 로그인 정보가 설정되지 않았습니다.")
         print("📝 .env 파일을 생성하고 다음 정보를 입력해주세요:")
         print("   TICKETLINK_ID=실제_아이디")
         print("   TICKETLINK_PASSWORD=실제_비밀번호")
+        print("   TICKETLINK_BIRTHDAY=19820124")
         print("💡 env.example 파일을 참고하세요.")
         logger.error("로그인 정보 미설정")
         return

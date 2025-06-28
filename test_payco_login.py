@@ -173,43 +173,80 @@ def test_payco_login():
         current_url = driver.current_url
         print(f"🔗 로그인 후 현재 URL: {current_url}")
         
-        if "deviceEnvironment" in current_url or "certification" in current_url:
-            print("🔐 생년월일 인증 페이지 감지됨")
+        # 다양한 인증 페이지 처리
+        if any(keyword in current_url for keyword in ["deviceEnvironment", "certification", "certificate", "mobile"]):
+            print("🔐 인증 페이지 감지됨")
             
             try:
-                # 생년월일 입력 필드 찾기
-                birthday_field = wait.until(
-                    EC.presence_of_element_located((By.ID, "birthday"))
-                )
-                print("✅ 생년월일 입력 필드 찾음")
+                # 페이지 로딩 대기
+                time.sleep(3)
                 
-                # 생년월일 입력
-                print(f"📅 생년월일 입력 중: {birthday}")
-                birthday_field.clear()
-                time.sleep(0.5)
-                for char in birthday:
-                    birthday_field.send_keys(char)
-                    time.sleep(random.uniform(0.05, 0.1))
+                # 생년월일 입력 필드 찾기 (여러 가능한 선택자)
+                birthday_selectors = [
+                    "#birthday",
+                    "input[name='birthday']",
+                    "input[id*='birth']",
+                    "input[name*='birth']"
+                ]
                 
-                time.sleep(1)
+                birthday_field = None
+                for selector in birthday_selectors:
+                    try:
+                        birthday_field = driver.find_element(By.CSS_SELECTOR, selector)
+                        print(f"✅ 생년월일 입력 필드 찾음: {selector}")
+                        break
+                    except:
+                        continue
                 
-                # 확인 버튼 클릭
-                confirm_button = driver.find_element(By.ID, "confirmBtn")
-                print("✅ 확인 버튼 찾음")
-                
-                print("🖱️ 확인 버튼 클릭 중...")
-                actions = ActionChains(driver)
-                actions.move_to_element(confirm_button)
-                actions.pause(0.5)
-                actions.click()
-                actions.perform()
-                
-                # 인증 완료 대기
-                print("⏳ 생년월일 인증 완료 대기 중...")
-                time.sleep(5)
+                if birthday_field:
+                    # 생년월일 입력
+                    print(f"📅 생년월일 입력 중: {birthday}")
+                    birthday_field.clear()
+                    time.sleep(0.5)
+                    for char in birthday:
+                        birthday_field.send_keys(char)
+                        time.sleep(random.uniform(0.05, 0.1))
+                    
+                    time.sleep(1)
+                    
+                    # 확인 버튼 찾기 (여러 가능한 선택자)
+                    confirm_selectors = [
+                        "#confirmBtn",
+                        "button[type='submit']",
+                        "input[type='submit']",
+                        ".btn_confirm",
+                        ".btn_submit"
+                    ]
+                    
+                    confirm_button = None
+                    for selector in confirm_selectors:
+                        try:
+                            confirm_button = driver.find_element(By.CSS_SELECTOR, selector)
+                            print(f"✅ 확인 버튼 찾음: {selector}")
+                            break
+                        except:
+                            continue
+                    
+                    if confirm_button:
+                        print("🖱️ 확인 버튼 클릭 중...")
+                        actions = ActionChains(driver)
+                        actions.move_to_element(confirm_button)
+                        actions.pause(0.5)
+                        actions.click()
+                        actions.perform()
+                        
+                        # 인증 완료 대기
+                        print("⏳ 인증 완료 대기 중...")
+                        time.sleep(5)
+                    else:
+                        print("⚠️ 확인 버튼을 찾을 수 없습니다.")
+                else:
+                    print("⚠️ 생년월일 입력 필드를 찾을 수 없습니다.")
+                    print("📄 현재 페이지 제목:", driver.title)
                 
             except Exception as e:
-                print(f"❌ 생년월일 인증 처리 중 오류: {e}")
+                print(f"❌ 인증 처리 중 오류: {e}")
+                print("📄 현재 페이지 제목:", driver.title)
         
         # 최종 결과 확인
         current_url = driver.current_url

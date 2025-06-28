@@ -568,6 +568,40 @@ class TicketLinkBot:
             # 로그인 완료 대기
             self.random_delay(3, 5)
             
+            # 생년월일 인증 처리 (새로운 기기/브라우저 감지 시)
+            current_url = self.driver.current_url
+            self.logger.info(f"로그인 후 현재 URL: {current_url}")
+            
+            if "deviceEnvironment" in current_url or "certification" in current_url:
+                self.logger.info("생년월일 인증 페이지 감지됨")
+                
+                try:
+                    # 생년월일 입력 필드 찾기
+                    birthday_field = self.wait.until(
+                        EC.presence_of_element_located((By.ID, "birthday"))
+                    )
+                    self.logger.info("생년월일 입력 필드 찾음")
+                    
+                    # 생년월일 입력
+                    self.logger.info(f"생년월일 입력 중: {self.birthday}")
+                    self.human_like_typing(birthday_field, self.birthday)
+                    self.random_delay(1, 2)
+                    
+                    # 확인 버튼 클릭
+                    confirm_button = self.driver.find_element(By.ID, "confirmBtn")
+                    self.logger.info("확인 버튼 찾음")
+                    
+                    self.logger.info("확인 버튼 클릭 중...")
+                    self.human_like_click(confirm_button)
+                    
+                    # 인증 완료 대기
+                    self.logger.info("생년월일 인증 완료 대기 중...")
+                    self.random_delay(5, 8)
+                    
+                except Exception as e:
+                    self.logger.error(f"생년월일 인증 처리 중 오류: {e}")
+                    raise
+            
             self.logger.info("PAYCO 로그인 처리 완료")
             
         except Exception as e:
