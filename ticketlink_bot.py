@@ -51,63 +51,116 @@ class TicketLinkBot:
             options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--disable-web-security")
             options.add_argument("--allow-running-insecure-content")
-            options.add_argument("--disable-features=VizDisplayCompositor")
             
-            # User-Agent 설정
-            options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            # User-Agent 설정 (더 일반적인 것으로 변경)
+            options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
             
             # 창 크기 설정
-            options.add_argument("--window-size=1920,1080")
+            options.add_argument("--window-size=1366,768")
             
-            # 추가 설정
+            # 매크로 감지 우회를 위한 핵심 설정
             options.add_argument("--disable-blink-features=AutomationControlled")
             options.add_argument("--disable-extensions")
             options.add_argument("--disable-plugins")
-            options.add_argument("--disable-images")
-            options.add_argument("--disable-javascript")
-            options.add_argument("--disable-default-apps")
-            options.add_argument("--disable-sync")
-            options.add_argument("--disable-translate")
+            
+            # 추가 우회 설정
             options.add_argument("--disable-background-timer-throttling")
             options.add_argument("--disable-backgrounding-occluded-windows")
             options.add_argument("--disable-renderer-backgrounding")
-            options.add_argument("--disable-field-trial-config")
+            options.add_argument("--disable-features=TranslateUI")
             options.add_argument("--disable-ipc-flooding-protection")
-            
-            # 실험적 옵션
-            options.add_experimental_option("excludeSwitches", ["enable-automation"])
-            options.add_experimental_option('useAutomationExtension', False)
-            options.add_experimental_option("prefs", {
-                "profile.default_content_setting_values.notifications": 2,
-                "profile.default_content_settings.popups": 0,
-                "profile.managed_default_content_settings.images": 2,
-                "profile.default_content_setting_values.media_stream": 2,
-                "profile.default_content_setting_values.geolocation": 2,
-                "profile.default_content_setting_values.mixed_script": 1,
-                "profile.default_content_setting_values.media_stream_mic": 2,
-                "profile.default_content_setting_values.media_stream_camera": 2,
-                "profile.default_content_setting_values.protocol_handlers": 2,
-                "profile.default_content_setting_values.ppapi_broker": 2,
-                "profile.default_content_setting_values.automatic_downloads": 1,
-                "profile.default_content_setting_values.midi_sysex": 2,
-                "profile.default_content_setting_values.push_messaging": 2,
-                "profile.default_content_setting_values.ssl_cert_decisions": 2,
-                "profile.default_content_setting_values.metro_switch_to_desktop": 2,
-                "profile.default_content_setting_values.protected_media_identifier": 2,
-                "profile.default_content_setting_values.app_banner": 2,
-                "profile.default_content_setting_values.site_engagement": 2,
-                "profile.default_content_setting_values.durable_storage": 2
-            })
+            options.add_argument("--disable-hang-monitor")
+            options.add_argument("--disable-prompt-on-repost")
+            options.add_argument("--disable-domain-reliability")
+            options.add_argument("--disable-component-extensions-with-background-pages")
+            options.add_argument("--disable-default-apps")
+            options.add_argument("--disable-sync")
+            options.add_argument("--disable-translate")
+            options.add_argument("--no-first-run")
+            options.add_argument("--no-default-browser-check")
+            options.add_argument("--disable-background-networking")
+            options.add_argument("--disable-client-side-phishing-detection")
+            options.add_argument("--disable-component-update")
+            options.add_argument("--disable-sync-preferences")
+            options.add_argument("--metrics-recording-only")
+            options.add_argument("--no-report-upload")
+            options.add_argument("--disable-logging")
+            options.add_argument("--silent")
+            options.add_argument("--log-level=3")
             
             # undetected_chromedriver로 드라이버 생성
             self.driver = uc.Chrome(options=options, version_main=None)
             self.wait = WebDriverWait(self.driver, 15)
             
             # 추가적인 매크로 감지 우회 스크립트
-            self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-            self.driver.execute_script("Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]})")
-            self.driver.execute_script("Object.defineProperty(navigator, 'languages', {get: () => ['ko-KR', 'ko', 'en-US', 'en']})")
-            self.driver.execute_script("Object.defineProperty(navigator, 'permissions', {get: () => ({query: () => Promise.resolve({state: 'granted'})})})")
+            stealth_js = """
+            // 기본 webdriver 속성 제거
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined,
+            });
+            
+            // plugins 속성 설정
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [1, 2, 3, 4, 5],
+            });
+            
+            // languages 속성 설정
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['ko-KR', 'ko', 'en-US', 'en'],
+            });
+            
+            // permissions 속성 설정
+            Object.defineProperty(navigator, 'permissions', {
+                get: () => ({
+                    query: () => Promise.resolve({state: 'granted'})
+                }),
+            });
+            
+            // chrome 속성 설정
+            Object.defineProperty(window, 'chrome', {
+                writable: true,
+                enumerable: true,
+                configurable: true,
+                value: {
+                    runtime: {},
+                    loadTimes: function() {},
+                    csi: function() {},
+                    app: {}
+                }
+            });
+            
+            // 자동화 관련 속성 제거
+            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
+            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
+            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
+            
+            // 추가 속성 설정
+            Object.defineProperty(navigator, 'hardwareConcurrency', {
+                get: () => 8,
+            });
+            
+            Object.defineProperty(navigator, 'deviceMemory', {
+                get: () => 8,
+            });
+            
+            Object.defineProperty(navigator, 'platform', {
+                get: () => 'Win32',
+            });
+            
+            Object.defineProperty(navigator, 'productSub', {
+                get: () => '20030107',
+            });
+            
+            Object.defineProperty(navigator, 'vendor', {
+                get: () => 'Google Inc.',
+            });
+            
+            Object.defineProperty(navigator, 'maxTouchPoints', {
+                get: () => 0,
+            });
+            """
+            
+            self.driver.execute_script(stealth_js)
             
             self.logger.info("웹드라이버 설정 완료 (undetected_chromedriver 사용)")
             
@@ -166,6 +219,41 @@ class TicketLinkBot:
         # 클릭 후 잠시 대기
         self.random_delay(0.5, 1.5)
     
+    def login_direct_payco(self):
+        """직접 PAYCO 로그인 URL로 접근하는 방법"""
+        try:
+            self.logger.info("직접 PAYCO 로그인 시도...")
+            
+            # PAYCO 로그인 URL 직접 접근
+            payco_login_url = "https://id.payco.com/oauth2.0/authorize?serviceProviderCode=TKLINK&scope=&response_type=code&state=1e6c8e08fcc74327bcb3d9a18375d736&client_id=Z9Ur2WLH9rB59Gy4_cJ3&redirect_uri=https://www.ticketlink.co.kr/auth/callback?selfRedirect=N&userLocale=ko_KR"
+            
+            self.logger.info(f"PAYCO 로그인 페이지로 직접 이동: {payco_login_url}")
+            self.driver.get(payco_login_url)
+            self.random_delay(3, 5)
+            
+            # PAYCO 로그인 페이지에서 로그인 처리
+            self.handle_payco_login()
+            
+            # 로그인 후 리다이렉트 대기
+            self.logger.info("로그인 후 리다이렉트 대기 중...")
+            self.random_delay(5, 8)
+            
+            # 현재 URL 확인
+            current_url = self.driver.current_url
+            self.logger.info(f"로그인 후 현재 URL: {current_url}")
+            
+            # 티켓링크로 리다이렉트되었는지 확인
+            if "ticketlink.co.kr" in current_url:
+                self.logger.info("티켓링크로 성공적으로 리다이렉트됨")
+                return True
+            else:
+                self.logger.warning("티켓링크로 리다이렉트되지 않음")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"직접 PAYCO 로그인 실패: {e}")
+            raise
+    
     def login(self):
         """PAYCO 로그인 수행"""
         try:
@@ -173,7 +261,7 @@ class TicketLinkBot:
             
             # 메인 페이지로 이동
             main_url = self.base_url
-            self.logger.info(f"메인 페이지로 이동: {main_url}")
+            self.logger.info(f"메인 페이지로 이동: {main_url}/home")
             self.driver.get(main_url)
             self.random_delay(3, 6)  # 더 긴 대기 시간
             
@@ -186,6 +274,10 @@ class TicketLinkBot:
                 self.random_delay(1, 2)
             except:
                 pass  # Alert가 없으면 무시
+            
+            # 자연스러운 사이트 탐색 (매크로 감지 우회)
+            self.logger.info("자연스러운 사이트 탐색 시작...")
+            self.natural_browsing()
             
             # 현재 URL 확인
             current_url = self.driver.current_url
@@ -363,6 +455,66 @@ class TicketLinkBot:
             except:
                 pass
             raise
+    
+    def natural_browsing(self):
+        """자연스러운 사이트 탐색 (매크로 감지 우회)"""
+        try:
+            self.logger.info("자연스러운 사이트 탐색 시작...")
+            
+            # 메인 페이지에서 잠시 머물기
+            self.random_delay(2, 4)
+            
+            # 페이지 스크롤 (자연스럽게)
+            self.logger.info("페이지 스크롤 중...")
+            scroll_height = self.driver.execute_script("return document.body.scrollHeight")
+            current_position = 0
+            scroll_step = random.randint(200, 400)
+            
+            while current_position < scroll_height:
+                current_position += scroll_step
+                self.driver.execute_script(f"window.scrollTo(0, {current_position});")
+                self.random_delay(0.5, 1.5)
+            
+            # 다시 위로 스크롤
+            self.driver.execute_script("window.scrollTo(0, 0);")
+            self.random_delay(1, 2)
+            
+            # 메뉴 링크들 클릭 (자연스럽게)
+            try:
+                menu_links = self.driver.find_elements(By.CSS_SELECTOR, "a[href*='/product'], a[href*='/category'], a[href*='/event']")
+                if menu_links:
+                    # 1-2개 링크만 클릭
+                    for i in range(min(2, len(menu_links))):
+                        link = menu_links[i]
+                        if link.is_displayed() and link.is_enabled():
+                            self.logger.info(f"메뉴 링크 클릭: {link.text}")
+                            self.human_like_click(link)
+                            self.random_delay(2, 4)
+                            
+                            # 뒤로 가기
+                            self.driver.back()
+                            self.random_delay(2, 3)
+                            break
+            except:
+                pass
+            
+            # 검색창에 마우스 올리기 (클릭하지 않고)
+            try:
+                search_box = self.driver.find_element(By.CSS_SELECTOR, "input[type='search'], input[placeholder*='검색'], .search_input")
+                if search_box.is_displayed():
+                    actions = ActionChains(self.driver)
+                    actions.move_to_element(search_box)
+                    actions.pause(random.uniform(0.5, 1.0))
+                    actions.perform()
+                    self.logger.info("검색창에 마우스 올림")
+            except:
+                pass
+            
+            self.logger.info("자연스러운 사이트 탐색 완료")
+            
+        except Exception as e:
+            self.logger.warning(f"자연스러운 탐색 중 오류: {e}")
+            pass  # 오류가 있어도 계속 진행
     
     def handle_payco_login(self):
         """PAYCO 로그인 페이지에서 로그인 처리"""
