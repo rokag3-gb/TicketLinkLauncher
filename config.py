@@ -15,6 +15,9 @@ class Config:
     
     # 티켓링크 설정
     TICKETLINK_BASE_URL = "https://www.ticketlink.co.kr"
+    
+    # 환경 변수에서 로그인 정보를 가져오거나, 직접 설정
+    # Git에 커밋되지 않도록 주의: 실제 사용 시에는 .env 파일을 사용하세요
     TICKETLINK_ID = os.getenv('TICKETLINK_ID')
     TICKETLINK_PASSWORD = os.getenv('TICKETLINK_PASSWORD')
     
