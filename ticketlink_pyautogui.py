@@ -88,13 +88,18 @@ class TicketLinkPyAutoGUI:
         self.random_delay(0.3, 0.8)
         
     def human_like_typing(self, text, interval=0.05):
-        """사람처럼 자연스러운 타이핑"""
+        """사람처럼 자연스러운 타이핑 (영어 입력 최적화)"""
         # 타이핑 전 짧은 대기
         self.random_delay(0.3, 0.6)
         
         # 기존 텍스트가 이미 선택되어 있을 수 있으므로 한 번 더 Ctrl+A
         pyautogui.hotkey('ctrl', 'a')
         self.random_delay(0.2, 0.4)
+        
+        # 영어 입력 상태 확인 (한/영 전환 키 한 번 더 누르기)
+        if any(char.isalpha() for char in text):
+            pyautogui.press('hangul')
+            self.random_delay(0.3, 0.5)
         
         # 텍스트 입력 (한 글자씩 자연스럽게)
         print(f"⌨️ 타이핑: {text}")
@@ -111,11 +116,11 @@ class TicketLinkPyAutoGUI:
         self.random_delay(0.5, 1.0)
         
     def search_for_artist(self, artist_name="PARK JIHOON"):
-        """아티스트 검색"""
+        """아티스트 검색 (메인 페이지에서 바로 시작)"""
         try:
             print(f"🔍 '{artist_name}' 검색 중...")
             
-            # 1. 검색창 클릭 (빈 곳 클릭)
+            # 1. 검색창 클릭 (메인 페이지의 검색창)
             print("📍 검색창 클릭 중...")
             self.human_like_click(self.coordinates['search_box'][0], self.coordinates['search_box'][1])
             self.random_delay(1, 2)
@@ -125,12 +130,17 @@ class TicketLinkPyAutoGUI:
             pyautogui.hotkey('ctrl', 'a')
             self.random_delay(0.5, 1.0)
             
-            # 3. 검색어 타이핑
+            # 3. 영어 입력 상태로 변경
+            print("🔤 영어 입력 상태로 변경 중...")
+            pyautogui.press('hangul')  # 한/영 전환
+            self.random_delay(0.5, 1.0)
+            
+            # 4. 검색어 타이핑
             print(f"⌨️ '{artist_name}' 타이핑 중...")
             self.human_like_typing(artist_name)
             self.random_delay(1, 2)
             
-            # 4. 검색 실행 (엔터키 또는 검색 아이콘 클릭)
+            # 5. 검색 실행 (엔터키 또는 검색 아이콘 클릭)
             print("🔍 검색 실행 중...")
             
             # 먼저 엔터키 시도
@@ -142,7 +152,7 @@ class TicketLinkPyAutoGUI:
             self.human_like_click(self.coordinates['search_button'][0], self.coordinates['search_button'][1])
             self.random_delay(3, 5)
             
-            # 5. 검색 결과 로딩 대기
+            # 6. 검색 결과 로딩 대기
             print("⏳ 검색 결과 로딩 대기 중...")
             self.random_delay(3, 5)
             
@@ -375,7 +385,7 @@ class TicketLinkPyAutoGUI:
             print("5초 후 시작됩니다...")
             time.sleep(5)
             
-            # 1. 아티스트 검색
+            # 1. 아티스트 검색 (메인 페이지에서 바로 시작)
             if not self.search_for_artist("PARK JIHOON"):
                 return False
                 
