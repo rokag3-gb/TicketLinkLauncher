@@ -52,7 +52,7 @@ class AutoBookingBot:
         self.booking_success = False
         
         # 새로고침 간격 설정
-        self.refresh_intervals = [2, 3, 4]  # 2초, 3초, 4초
+        self.refresh_intervals = [1.5, 2, 2.5]  # 1.5초, 2초, 2.5초
         
     def load_coordinates(self):
         """좌표 파일 로드"""
@@ -115,7 +115,7 @@ class AutoBookingBot:
         delay = random.uniform(min_seconds, max_seconds)
         time.sleep(delay)
     
-    def human_like_click(self, x, y, button='left'):
+    def click_like_human(self, x, y, button='left'):
         """사람처럼 자연스러운 클릭"""
         # 랜덤한 오프셋 추가
         offset_x = random.randint(-3, 3)
@@ -123,11 +123,11 @@ class AutoBookingBot:
         
         # 마우스 이동
         pyautogui.moveTo(x + offset_x, y + offset_y, duration=random.uniform(0.1, 0.3))
-        self.random_delay(0.1, 0.3)
+        self.random_delay(0.15, 0.18)
         
         # 클릭
         pyautogui.click(button=button)
-        self.random_delay(0.3, 0.8)
+        self.random_delay(0.2, 0.25)
     
     def send_slack_message(self, message, is_success=True):
         """슬랙으로 메시지 전송"""
@@ -210,11 +210,11 @@ class AutoBookingBot:
         """페이지 새로고침"""
         try:
             print("🔄 페이지 새로고침 중...")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['refresh_button'][0],
                 self.coordinates['refresh_button'][1]
             )
-            self.random_delay(1, 2)
+            self.random_delay(1.2, 3)
             return True
         except Exception as e:
             print(f"❌ 새로고침 실패: {e}")
@@ -230,16 +230,16 @@ class AutoBookingBot:
             
             if seat_position:
                 print(f"🎯 좌석 선택: {seat_position}")
-                self.human_like_click(seat_position[0], seat_position[1])
-                self.random_delay(1, 2)
+                self.click_like_human(seat_position[0], seat_position[1])
+                self.random_delay(0.3, 0.4)
                 
                 # 다음단계 버튼 클릭
                 print("➡️ 다음단계 버튼 클릭")
-                self.human_like_click(
+                self.click_like_human(
                     self.coordinates['next_step_seat'][0],
                     self.coordinates['next_step_seat'][1]
                 )
-                self.random_delay(2, 3)
+                self.random_delay(0.17, 0.2)
                 return True
             else:
                 print("❌ 사용 가능한 좌석 없음")
@@ -256,27 +256,27 @@ class AutoBookingBot:
             
             # 일반 0 콤보박스 클릭
             print("📋 일반 0 콤보박스 클릭")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['general_0_combo'][0],
                 self.coordinates['general_0_combo'][1]
             )
-            self.random_delay(0.5, 1)
+            self.random_delay(0.05, 0.08)
             
             # 일반 0 밑의 1 옵션 클릭
             print("1️⃣ 일반 1 옵션 클릭")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['general_1_option'][0],
                 self.coordinates['general_1_option'][1]
             )
-            self.random_delay(1, 2)
+            self.random_delay(0.05, 0.08)
             
             # 다음단계 버튼 클릭
             print("➡️ 다음단계 버튼 클릭")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['next_step_ticket'][0],
                 self.coordinates['next_step_ticket'][1]
             )
-            self.random_delay(2, 3)
+            self.random_delay(0.05, 0.08)
             
             return True
             
@@ -291,42 +291,42 @@ class AutoBookingBot:
             
             # 예매자확인 체크박스들 체크
             print("✅ 예매자확인 체크박스 1 체크")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['buyer_checkbox1'][0],
                 self.coordinates['buyer_checkbox1'][1]
             )
-            self.random_delay(0.5, 1)
+            self.random_delay(0.01, 0.02)
             
             print("✅ 예매자확인 체크박스 2 체크")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['buyer_checkbox2'][0],
                 self.coordinates['buyer_checkbox2'][1]
             )
-            self.random_delay(0.5, 1)
+            self.random_delay(0.01, 0.02)
             
             # 취소기한및취소수수료동의 체크
             print("✅ 취소기한및취소수수료동의 체크")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['cancel_agreement'][0],
                 self.coordinates['cancel_agreement'][1]
             )
-            self.random_delay(0.5, 1)
+            self.random_delay(0.01, 0.02)
             
             # 일반결제 선택
             print("💳 일반결제 선택")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['general_payment'][0],
                 self.coordinates['general_payment'][1]
             )
-            self.random_delay(1, 2)
+            self.random_delay(0.01, 0.02)
             
             # 결제하기 버튼 클릭
             print("💳 결제하기 버튼 클릭")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['payment_button'][0],
                 self.coordinates['payment_button'][1]
             )
-            self.random_delay(3, 5)
+            self.random_delay(0.5, 0.7)
             
             return True
             
@@ -341,48 +341,49 @@ class AutoBookingBot:
             
             # 무통장입금 선택
             print("🏦 무통장입금 선택")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['bank_transfer'][0],
                 self.coordinates['bank_transfer'][1]
             )
-            self.random_delay(1, 2)
+            self.random_delay(0.12, 0.19)
             
             # 전자금융거래 이용약관 동의
             print("✅ 전자금융거래 이용약관 동의")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['electronic_agreement'][0],
                 self.coordinates['electronic_agreement'][1]
             )
-            self.random_delay(0.5, 1)
+            self.random_delay(0.12, 0.19)
             
             # 결제하기 버튼 클릭
             print("💳 결제하기 버튼 클릭")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['payco_payment_button'][0],
                 self.coordinates['payco_payment_button'][1]
             )
-            self.random_delay(2, 3)
+            self.random_delay(0.12, 0.19)
             
             # 하나은행 선택
             print("🏦 하나은행 선택")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['hana_bank'][0],
                 self.coordinates['hana_bank'][1]
             )
-            self.random_delay(1, 2)
+            self.random_delay(0.12, 0.19)
             
             # 다음 버튼 클릭 (최종)
             print("➡️ 다음 버튼 클릭 (최종)")
-            self.human_like_click(
+            self.click_like_human(
                 self.coordinates['final_next'][0],
                 self.coordinates['final_next'][1]
             )
-            self.random_delay(3, 5)
+            self.random_delay(0.12, 0.19)
             
             return True
             
         except Exception as e:
             print(f"❌ PAYCO 결제 실패: {e}")
+            self.send_slack_message("❌ PAYCO 결제 단계에서 실패했습니다.", False)
             return False
     
     def run_booking_loop(self):
@@ -426,7 +427,7 @@ class AutoBookingBot:
                                 break
                             else:
                                 print("❌ PAYCO 결제 실패")
-                                self.send_slack_message("❌ PAYCO 결제 단계에서 실패했습니다.", False)
+                                self.send_slack_message("❌ 예매가 최종 결제 단계에서 실패했습니다.", False)
                         else:
                             print("❌ 예매확인 정보 입력 실패")
                             self.send_slack_message("❌ 예매확인 정보 입력 단계에서 실패했습니다.", False)
