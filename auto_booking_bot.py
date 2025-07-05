@@ -17,6 +17,7 @@ import requests
 from datetime import datetime
 import threading
 from dotenv import load_dotenv
+import keyboard  # 전역 단축키 감지용
 
 class AutoBookingBot:
     """티켓링크 자동 예매 봇"""
@@ -123,7 +124,7 @@ class AutoBookingBot:
         
         # 마우스 이동
         pyautogui.moveTo(x + offset_x, y + offset_y, duration=random.uniform(0.1, 0.3))
-        self.random_delay(0.15, 0.18)
+        self.random_delay(0.19, 0.21)
         
         # 클릭
         pyautogui.click(button=button)
@@ -214,11 +215,22 @@ class AutoBookingBot:
                 self.coordinates['refresh_button'][0],
                 self.coordinates['refresh_button'][1]
             )
-            self.random_delay(1.2, 3)
+            self.random_delay(1.7, 3)
             return True
         except Exception as e:
             print(f"❌ 새로고침 실패: {e}")
             return False
+    
+    def get_pixel_color(self, x, y):
+        img = ImageGrab.grab().convert('RGB')
+        r, g, b = img.getpixel((x, y))
+        return (r, g, b)
+
+    def is_next_button_selected(self):
+        x, y = self.coordinates['next_step_seat']
+        color = self.get_pixel_color(x, y)
+        # 글꼴색이 흰색(255,255,255)이면 좌석 선택됨
+        return color == (255, 255, 255)
     
     def select_available_seat(self):
         """사용 가능한 좌석 선택"""
@@ -230,8 +242,17 @@ class AutoBookingBot:
             
             if seat_position:
                 print(f"🎯 좌석 선택: {seat_position}")
-                self.click_like_human(seat_position[0], seat_position[1])
-                self.random_delay(0.3, 0.4)
+                x0, y0 = seat_position
+                selected = False
+                for dx in [-1, 0, 1]:
+                    for dy in [-1, 0, 1]:
+                        self.click_like_human(x0 + dx, y0 + dy)
+                        self.random_delay(0.08, 0.11)
+                        if self.is_next_button_selected():
+                            selected = True
+                            break
+                    if selected:
+                        break
                 
                 # 다음단계 버튼 클릭
                 print("➡️ 다음단계 버튼 클릭")
@@ -451,6 +472,15 @@ class AutoBookingBot:
         
         print("🏁 자동 예매 종료")
     
+    def start_hotkey_listener(self):
+        def on_hotkey():
+            print("\n🛑 Ctrl+Shift+0 단축키 감지됨! 자동 예매를 종료합니다.")
+            self.is_running = False
+            self.send_slack_message("⚠️ 단축키(Ctrl+Shift+0)로 자동 예매가 강제 종료되었습니다.", False)
+            # 강제 종료 (안전하게 종료가 안 될 때만 사용)
+            os._exit(0)
+        keyboard.add_hotkey('ctrl+shift+0', on_hotkey)
+    
     def start_booking(self):
         """예매 시작"""
         if self.is_running:
@@ -460,12 +490,15 @@ class AutoBookingBot:
         self.is_running = True
         self.booking_success = False
         
+        # 전역 단축키 리스너 시작
+        self.start_hotkey_listener()
+        
         # 별도 스레드에서 실행
         booking_thread = threading.Thread(target=self.run_booking_loop)
         booking_thread.daemon = True
         booking_thread.start()
         
-        print("✅ 자동 예매가 시작되었습니다. 중단하려면 Ctrl+C를 누르세요.")
+        print("✅ 자동 예매가 시작되었습니다. 중단하려면 Ctrl+Shift+0을 누르세요.")
     
     def stop_booking(self):
         """예매 중단"""
@@ -561,7 +594,7 @@ def main():
                 print("\n⚠️ 주의사항:")
                 print("- 티켓링크 좌석선택 페이지가 열려있어야 합니다.")
                 print("- 좌표가 올바르게 설정되어 있어야 합니다.")
-                print("- 중단하려면 Ctrl+C를 누르세요.")
+                print("- 중단하려면 Ctrl+Shift+0을 누르세요.")
                 
                 confirm = input("\n자동 예매를 시작하시겠습니까? (y/n): ").strip().lower()
                 if confirm == 'y':
