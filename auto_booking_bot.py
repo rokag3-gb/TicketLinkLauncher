@@ -40,8 +40,8 @@ class AutoBookingBot:
         self.coordinates = self.load_coordinates()
         
         # 색상 설정 (예약 가능석 감지용)
-        #self.available_seat_color = (193, 144, 72)  # 예약 가능석 색상 (BGR) 하늘색
-        self.available_seat_color = (87, 98, 245)  # 예약 가능석 색상 (BGR) 주황색
+        self.available_seat_color = (193, 144, 72)  # 예약 가능석 색상 (BGR) 하늘색
+        #self.available_seat_color = (87, 98, 245)  # 예약 가능석 색상 (BGR) 주황색
         self.color_tolerance = 30  # 색상 허용 오차
         
         # 슬랙 설정
@@ -53,7 +53,7 @@ class AutoBookingBot:
         self.booking_success = False
         
         # 새로고침 간격 설정
-        self.refresh_intervals = [1.5, 2, 2.5]  # 1.5초, 2초, 2.5초
+        self.refresh_intervals = [1.3, 1.7, 1.9]  # 1.3초, 1.7초, 1.9초
         
     def load_coordinates(self):
         """좌표 파일 로드"""
@@ -215,7 +215,7 @@ class AutoBookingBot:
                 self.coordinates['refresh_button'][0],
                 self.coordinates['refresh_button'][1]
             )
-            self.random_delay(1.7, 3)
+            self.random_delay(1.5, 2.3)
             return True
         except Exception as e:
             print(f"❌ 새로고침 실패: {e}")
@@ -247,7 +247,7 @@ class AutoBookingBot:
                 for dx in [-1, 0, 1]:
                     for dy in [-1, 0, 1]:
                         self.click_like_human(x0 + dx, y0 + dy)
-                        self.random_delay(0.08, 0.11)
+                        self.random_delay(0.05, 0.07)
                         if self.is_next_button_selected():
                             selected = True
                             break
@@ -281,7 +281,7 @@ class AutoBookingBot:
                 self.coordinates['general_0_combo'][0],
                 self.coordinates['general_0_combo'][1]
             )
-            self.random_delay(0.05, 0.08)
+            self.random_delay(0.02, 0.03)
             
             # 일반 0 밑의 1 옵션 클릭
             print("1️⃣ 일반 1 옵션 클릭")
@@ -289,7 +289,7 @@ class AutoBookingBot:
                 self.coordinates['general_1_option'][0],
                 self.coordinates['general_1_option'][1]
             )
-            self.random_delay(0.05, 0.08)
+            self.random_delay(0.02, 0.03)
             
             # 다음단계 버튼 클릭
             print("➡️ 다음단계 버튼 클릭")
@@ -297,7 +297,7 @@ class AutoBookingBot:
                 self.coordinates['next_step_ticket'][0],
                 self.coordinates['next_step_ticket'][1]
             )
-            self.random_delay(0.05, 0.08)
+            self.random_delay(0.04, 0.07)
             
             return True
             
@@ -471,13 +471,14 @@ class AutoBookingBot:
             self.send_slack_message("⏰ 자동 예매가 종료되었습니다. (성공하지 못함)", False)
         
         print("🏁 자동 예매 종료")
+        os._exit(0)
     
     def start_hotkey_listener(self):
         def on_hotkey():
             print("\n🛑 Ctrl+Shift+0 단축키 감지됨! 자동 예매를 종료합니다.")
             self.is_running = False
             self.send_slack_message("⚠️ 단축키(Ctrl+Shift+0)로 자동 예매가 강제 종료되었습니다.", False)
-            # 강제 종료 (안전하게 종료가 안 될 때만 사용)
+            # 강제 종료
             os._exit(0)
         keyboard.add_hotkey('ctrl+shift+0', on_hotkey)
     
