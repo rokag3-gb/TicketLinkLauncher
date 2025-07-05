@@ -1,0 +1,68 @@
+{
+  "refresh_button": [
+    678,
+    426
+  ],
+  "seat_area": {
+    "x1": 94,
+    "y1": 432,
+    "x2": 619,
+    "y2": 714
+  },
+  "next_step_seat": [
+    918,
+    829
+  ],
+  "general_0_combo": [
+    663,
+    505
+  ],
+  "general_1_option": [
+    661,
+    563
+  ],
+  "next_step_ticket": [
+    922,
+    829
+  ],
+  "buyer_checkbox1": [
+    59,
+    610
+  ],
+  "buyer_checkbox2": [
+    61,
+    662
+  ],
+  "cancel_agreement": [
+    771,
+    616
+  ],
+  "general_payment": [
+    785,
+    772
+  ],
+  "payment_button": [
+    916,
+    829
+  ],
+  "bank_transfer": [
+    747,
+    480
+  ],
+  "electronic_agreement": [
+    1027,
+    560
+  ],
+  "payco_payment_button": [
+    1067,
+    837
+  ],
+  "hana_bank": [
+    917,
+    577
+  ],
+  "final_next": [
+    957,
+    749
+  ]
+}

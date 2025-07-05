@@ -8,8 +8,9 @@
 - 로그인 자동화 (PAYCO 로그인 지원)
 - **기존 크롬 세션 활용 (권장)**
 - **PyAutoGUI 기반 전체 예매 자동화 (매크로 감지 우회)**
+- **자동 예매 봇 (취소표 모니터링 및 자동 예매)** ⭐
 - 아티스트 검색부터 결제까지 완전 자동화
-- 예매 성공 시 알림 기능
+- 예매 성공 시 슬랙 알림 기능
 
 ## 📋 설치 방법
 
@@ -35,9 +36,46 @@ pip install -r requirements.txt
 
 ## 🔧 사용 방법
 
-### 방법 1: PyAutoGUI 전체 예매 자동화 (매크로 감지 우회) ⭐
+### 방법 1: 자동 예매 봇 (취소표 모니터링 및 자동 예매) ⭐
 
-브라우저 레벨에서 매크로 감지를 우회하기 위해 화면 좌표 기반으로 검색부터 결제까지 완전 자동화합니다.
+취소표가 나올 때까지 자동으로 새로고침하면서 모니터링하고, 파란색 좌석이 나타나면 즉시 자동 예매를 진행합니다.
+
+#### 1단계: 환경 설정
+```bash
+# .env 파일에 슬랙 웹훅 URL 설정
+SLACK_WEBHOOK_URL=your_slack_webhook_url_here
+SLACK_CHANNEL=#ticket-booking
+```
+
+#### 2단계: 좌표 설정
+```bash
+python auto_booking_bot.py
+# 선택: 2 (좌표 보정)
+```
+- 각 단계별로 마우스를 해당 위치로 이동하여 좌표 설정
+- 좌석 모니터링 영역 설정
+- 좌표 저장
+
+#### 3단계: 자동 예매 시작
+```bash
+python auto_booking_bot.py
+# 선택: 1 (자동 예매 시작)
+```
+
+**자동화 과정:**
+1. 좌석선택 페이지에서 주기적 새로고침 (2-4초 랜덤)
+2. 파란색 좌석 감지 시 즉시 선택
+3. 권종/할인/매수 선택 (일반 1석)
+4. 예매자 확인 사항 체크
+5. PAYCO 무통장입금 결제 진행
+6. 예매 성공/실패 시 슬랙 알림
+
+**⚠️ 주의사항:**
+- 티켓링크 좌석선택 페이지가 열려있어야 함
+- 로그인이 완료된 상태여야 함
+- 중단: Ctrl+C 또는 마우스를 화면 모서리로 이동
+
+### 방법 2: PyAutoGUI 전체 예매 자동화 (매크로 감지 우회)
 
 #### 1단계: 좌표 설정
 ```bash
@@ -106,12 +144,18 @@ python main.py
 
 ## 🎯 실행 모드
 
+### 자동 예매 봇 (auto_booking_bot.py) ⭐
+1. **자동 예매 시작** - 취소표 모니터링 및 자동 예매
+2. **좌표 보정** - 마우스 좌표 설정
+3. **색상 감지 테스트** - 파란색 좌석 감지 테스트
+4. **종료**
+
 ### 메인 프로그램 (main.py)
 1. **로그인 테스트만** - 로그인 기능만 테스트
 2. **전체 예매 테스트** - 로그인부터 예매까지 전체 과정 테스트
 3. **직접 PAYCO 로그인 테스트** - PAYCO 로그인만 테스트
 4. **기존 크롬 세션 활용 (권장)** - 이미 로그인된 크롬 창 활용
-5. **PyAutoGUI 전체 예매 자동화** - 검색부터 결제까지 완전 자동화 ⭐
+5. **PyAutoGUI 전체 예매 자동화** - 검색부터 결제까지 완전 자동화
 
 ### PyAutoGUI 매크로 모드
 - **좌표 보정만** - 마우스 좌표 설정
@@ -164,14 +208,16 @@ python main.py
 
 ```
 TicketLinkLauncher/
+├── auto_booking_bot.py        # 자동 예매 봇 (취소표 모니터링) ⭐
 ├── main.py                    # 메인 실행 파일
 ├── ticketlink_bot.py          # 티켓링크 봇 클래스 (Selenium 기반)
 ├── chrome_session_manager.py  # 크롬 세션 관리 모듈
-├── ticketlink_pyautogui.py    # PyAutoGUI 기반 전체 예매 자동화 ⭐
+├── ticketlink_pyautogui.py    # PyAutoGUI 기반 전체 예매 자동화
 ├── coordinate_helper.py       # 좌표 설정 헬퍼
 ├── use_existing_chrome.py     # 기존 크롬 세션 활용 스크립트
 ├── start_chrome_debug.bat     # 크롬 디버깅 모드 시작 배치 파일
 ├── test_payco_login.py        # PAYCO 로그인 테스트
+├── booking_coordinates.json   # 자동 예매 봇 좌표 (자동 생성)
 ├── coordinates.json           # 저장된 좌표 (자동 생성)
 ├── requirements.txt           # 필요한 패키지 목록
 ├── .env                       # 환경 변수 (사용자가 생성)
