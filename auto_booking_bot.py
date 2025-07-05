@@ -53,7 +53,7 @@ class AutoBookingBot:
         self.booking_success = False
         
         # 새로고침 간격 설정
-        self.refresh_intervals = [1.3, 1.7, 1.9]  # 1.3초, 1.7초, 1.9초
+        self.refresh_intervals = [0.6, 0.9, 1]  # 1.3초, 1.7초, 1.9초
         
     def load_coordinates(self):
         """좌표 파일 로드"""
