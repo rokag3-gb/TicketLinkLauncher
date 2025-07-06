@@ -53,7 +53,7 @@ class AutoBookingBot:
         self.booking_success = False
         
         # 새로고침 간격 설정
-        self.refresh_intervals = [0.6, 0.9, 1]  # 1.3초, 1.7초, 1.9초
+        self.refresh_intervals = [0.6, 0.8, 0.9]  # 0.6초, 0.8초, 0.9초
         
     def load_coordinates(self):
         """좌표 파일 로드"""
@@ -124,11 +124,11 @@ class AutoBookingBot:
         
         # 마우스 이동
         pyautogui.moveTo(x + offset_x, y + offset_y, duration=random.uniform(0.1, 0.3))
-        self.random_delay(0.19, 0.21)
+        self.random_delay(0.16, 0.19)
         
         # 클릭
         pyautogui.click(button=button)
-        self.random_delay(0.2, 0.25)
+        self.random_delay(0.18, 0.2)
     
     def send_slack_message(self, message, is_success=True):
         """슬랙으로 메시지 전송"""
@@ -215,7 +215,7 @@ class AutoBookingBot:
                 self.coordinates['refresh_button'][0],
                 self.coordinates['refresh_button'][1]
             )
-            self.random_delay(1.5, 2.3)
+            self.random_delay(1, 1.3)
             return True
         except Exception as e:
             print(f"❌ 새로고침 실패: {e}")
@@ -247,13 +247,12 @@ class AutoBookingBot:
                 for dx in [-1, 0, 1]:
                     for dy in [-1, 0, 1]:
                         self.click_like_human(x0 + dx, y0 + dy)
-                        self.random_delay(0.05, 0.07)
+                        self.random_delay(0.03, 0.06)
                         if self.is_next_button_selected():
                             selected = True
                             break
                     if selected:
                         break
-                
                 # 다음단계 버튼 클릭
                 print("➡️ 다음단계 버튼 클릭")
                 self.click_like_human(
@@ -261,11 +260,12 @@ class AutoBookingBot:
                     self.coordinates['next_step_seat'][1]
                 )
                 self.random_delay(0.17, 0.2)
-                return True
+
+                self.send_slack_message("🚀 예약가능석 선택 후 다음단계 클릭까지 완료되었습니다.", True)
+                #return True  # 좌석 선택 후 바로 함수 종료
             else:
                 print("❌ 사용 가능한 좌석 없음")
                 return False
-                
         except Exception as e:
             print(f"❌ 좌석 선택 실패: {e}")
             return False
@@ -431,30 +431,8 @@ class AutoBookingBot:
                 # 사용 가능한 좌석 검색
                 if self.select_available_seat():
                     print("🎯 좌석 선택 성공! 다음 단계로 진행...")
-                    
-                    # 권종/할인/매수 선택
-                    if self.select_ticket_type():
-                        print("🎫 권종 선택 완료!")
-                        
-                        # 예매확인 정보 입력
-                        if self.fill_payment_info():
-                            print("📝 예매확인 완료!")
-                            
-                            # PAYCO 결제 완료
-                            if self.complete_payco_payment():
-                                print("🎉 예매 완료!")
-                                self.booking_success = True
-                                self.send_slack_message("🎉 티켓 예매가 성공적으로 완료되었습니다!", True)
-                                break
-                            else:
-                                print("❌ PAYCO 결제 실패")
-                                self.send_slack_message("❌ 예매가 최종 결제 단계에서 실패했습니다.", False)
-                        else:
-                            print("❌ 예매확인 정보 입력 실패")
-                            self.send_slack_message("❌ 예매확인 정보 입력 단계에서 실패했습니다.", False)
-                    else:
-                        print("❌ 권종 선택 실패")
-                        self.send_slack_message("❌ 권종 선택 단계에서 실패했습니다.", False)
+                    # 이후 단계 진입하지 않고 루프 종료
+                    break
                 else:
                     print("⏳ 사용 가능한 좌석이 없습니다. 계속 모니터링...")
                 
