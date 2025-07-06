@@ -262,7 +262,8 @@ class AutoBookingBot:
                 self.random_delay(0.17, 0.2)
 
                 self.send_slack_message("🚀 예약가능석 선택 후 다음단계 클릭까지 완료되었습니다.", True)
-                #return True  # 좌석 선택 후 바로 함수 종료
+                
+                return True  # 좌석 선택 후 바로 함수 종료
             else:
                 print("❌ 사용 가능한 좌석 없음")
                 return False
